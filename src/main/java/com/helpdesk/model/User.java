@@ -2,7 +2,7 @@ package com.helpdesk.model;
 
 public abstract class User {
 
-    // com.helpdesk.model.User data and shared ID counter
+    // User data and shared ID counter
     private String name;
     private String lastName;
     private String email;

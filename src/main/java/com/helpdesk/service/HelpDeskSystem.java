@@ -6,13 +6,14 @@ import com.helpdesk.model.SupportAgent;
 import com.helpdesk.model.Ticket;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class HelpDeskSystem {
 
     // Stores customers, support agents, and tickets
-    private ArrayList<Customer> customers = new ArrayList<>();
-    private ArrayList<SupportAgent> agents = new ArrayList<>();
-    private ArrayList<Ticket> tickets = new ArrayList<>();
+    private final List<Customer> customers = new ArrayList<>();
+    private final List<SupportAgent> agents = new ArrayList<>();
+    private final List<Ticket> tickets = new ArrayList<>();
 
 
     // Adds a customer to the system
@@ -175,26 +176,26 @@ public class HelpDeskSystem {
     }
 
     // Finds tickets by agent's ID
-    public ArrayList<Ticket> findTicketsAssignedToAgent(int agentId) {
+    public List<Ticket> findTicketsAssignedToAgent(int agentId) {
 
-        ArrayList<Ticket> ticketsByAgentId = new ArrayList<>();
+        List<Ticket> ticketsByAgentId = new ArrayList<>();
 
         SupportAgent agent = findAgentById(agentId);
 
-        if(agent != null) {
+        if (agent != null) {
             for (Ticket t : tickets) {
-                if(t.getAgent() != null && t.isOpen() && t.getAgent().getId() == agentId) {
-                        ticketsByAgentId.add(t);
-                    }
+                if (t.getAgent() != null && t.isActive() && t.getAgent().getId() == agentId) {
+                    ticketsByAgentId.add(t);
                 }
             }
+        }
         return ticketsByAgentId;
 
     }
 
     // Finds open tickets without an agent
-    public ArrayList<Ticket> findTicketsWithoutAgent() {
-        ArrayList<Ticket> ticketsWithoutAgent = new ArrayList<>();
+    public List<Ticket> findTicketsWithoutAgent() {
+        List<Ticket> ticketsWithoutAgent = new ArrayList<>();
         for (Ticket t : tickets) {
             if (t.getAgent() == null && t.isOpen()) {
                 ticketsWithoutAgent.add(t);
@@ -202,35 +203,55 @@ public class HelpDeskSystem {
         }
         return ticketsWithoutAgent;
     }
-     // Finds tickets created by a specific customer
-    public ArrayList<Ticket> findTicketsCreatedByCustomer(int customerId) {
-        ArrayList<Ticket> ticketsByCustomerId = new ArrayList<>();
 
-        Customer searchCustomer  =  findCustomerById(customerId);
+    // Finds tickets created by a specific customer
+    public List<Ticket> findTicketsCreatedByCustomer(int customerId) {
+        List<Ticket> ticketsByCustomerId = new ArrayList<>();
 
-        if(searchCustomer == null) {
+        Customer searchCustomer = findCustomerById(customerId);
+
+        if (searchCustomer == null) {
             return ticketsByCustomerId;
         }
 
-        for(Ticket t : tickets) {
-            if(t.getCustomer().getId() == customerId) {
+        for (Ticket t : tickets) {
+            if (t.getCustomer().getId() == customerId) {
                 ticketsByCustomerId.add(t);
             }
         }
-        return ticketsByCustomerId ;
+        return ticketsByCustomerId;
     }
 
-    // Counts open tickets assigned to a specific agent
-    public int countTicketsAssignedToAgent(int agentId) {
+    // Gets a ticket's history by ID
+    public String getTicketHistory(int ticketId) {
+        Ticket ticket = findTicketById(ticketId);
+        if (ticket == null) {
+            return "No ticket found!";
+        }
+        return ticket.getFullHistory();
+    }
+
+    // Starts progress for a ticket by ID
+    public boolean startTicketProgress(int ticketId) {
+        Ticket ticket = findTicketById(ticketId);
+        if (ticket == null) {
+            return false;
+        }
+        return ticket.startProgress();
+    }
+
+
+    // Counts active tickets assigned to a specific agent
+    public int countActiveTicketsAssignedToAgent(int agentId) {
         return findTicketsAssignedToAgent(agentId).size();
     }
 
-    // Finds an agent with the fewest open tickets
-    public SupportAgent findAgentWithFewestOpenTickets() {
+    // Finds an agent with the fewest active tickets
+    public SupportAgent findAgentWithFewestActiveTickets() {
         int numberOfTickets = Integer.MAX_VALUE;
         SupportAgent agent = null;
         for (SupportAgent a : agents) {
-            int ticketsCount = countTicketsAssignedToAgent(a.getId());
+            int ticketsCount = countActiveTicketsAssignedToAgent(a.getId());
             if (ticketsCount < numberOfTickets) {
                 numberOfTickets = ticketsCount;
                 agent = a;
@@ -239,28 +260,28 @@ public class HelpDeskSystem {
         return agent;
     }
 
-    // Assigns a ticket to an agent with the fewest open tickets
-    public boolean assignTicketToAgentWithFewestOpenTickets(int ticketId) {
+    // Assigns a ticket to an agent with the fewest active tickets
+    public boolean assignTicketToAgentWithFewestActiveTickets(int ticketId) {
 
-        SupportAgent agent = findAgentWithFewestOpenTickets();
+        SupportAgent agent = findAgentWithFewestActiveTickets();
         if (agent == null) {
             return false;
         }
 
         return assignAgentToTicket(ticketId, agent.getId());
     }
+
     // Assigns all open tickets without an agent and counts successful assignments
     public int assignAllUnassignedOpenTickets() {
 
-        ArrayList<Ticket> openTicketsWithoutAgent  = findTicketsWithoutAgent();
+        List<Ticket> openTicketsWithoutAgent = findTicketsWithoutAgent();
         int counter = 0;
-        for(Ticket t : openTicketsWithoutAgent) {
-            boolean assignSuccessful = assignTicketToAgentWithFewestOpenTickets(t.getId());
+        for (Ticket t : openTicketsWithoutAgent) {
+            boolean assignSuccessful = assignTicketToAgentWithFewestActiveTickets(t.getId());
             if (assignSuccessful) {
                 counter++;
             }
         }
         return counter;
     }
-
 }
