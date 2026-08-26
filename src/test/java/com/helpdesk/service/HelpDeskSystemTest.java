@@ -157,7 +157,6 @@ public class HelpDeskSystemTest {
         assertTrue(system.assignAgentToTicket(ticket1.getId(), agent1.getId()));
         assertTrue(system.closeTicket(ticket1.getId()));
         assertEquals(TicketStatus.CLOSED, ticket1.getStatus());
-        assertNull(ticket1.getAgent());
     }
 
     @Test
@@ -342,6 +341,52 @@ public class HelpDeskSystemTest {
         assertTrue(history.contains("CREATED"));
         assertTrue(history.contains("ASSIGNED"));
         assertTrue(history.contains("STARTED_PROGRESS"));
+    }
+
+    @Test
+    void closeTicketShouldStoreClosingAgentAndTime() {
+
+        assertTrue(system.addTicket(ticket1));
+        assertTrue(system.addAgent(agent1));
+        assertTrue(system.assignAgentToTicket(ticket1.getId(), agent1.getId()));
+
+        assertTrue(system.closeTicket(ticket1.getId()));
+
+        assertEquals(TicketStatus.CLOSED, ticket1.getStatus());
+        assertSame(agent1, ticket1.getClosedBy());
+        assertNotNull(ticket1.getClosedAt());
+    }
+
+    @Test
+    void reopenTicketShouldClearAgentAndClosingData() {
+
+        assertTrue(system.addTicket(ticket1));
+        assertTrue(system.addAgent(agent1));
+        assertTrue(system.assignAgentToTicket(ticket1.getId(), agent1.getId()));
+        assertTrue(system.closeTicket(ticket1.getId()));
+
+        assertTrue(system.reopenTicket(ticket1.getId()));
+
+        assertEquals(TicketStatus.OPEN, ticket1.getStatus());
+        assertNull(ticket1.getAgent());
+        assertNull(ticket1.getClosedBy());
+        assertNull(ticket1.getClosedAt());
+    }
+
+    @Test
+    void closeTicketThroughSystemShouldAddClosingAgentToHistory() {
+
+        assertTrue(system.addTicket(ticket1));
+        assertTrue(system.addAgent(agent1));
+        assertTrue(system.assignAgentToTicket(ticket1.getId(), agent1.getId()));
+
+        assertTrue(system.closeTicket(ticket1.getId()));
+
+        TicketHistory lastEvent =
+                ticket1.getHistory().get(ticket1.getHistory().size() - 1);
+
+        assertEquals(TicketAction.CLOSED, lastEvent.getAction());
+        assertSame(agent1, lastEvent.getAgent());
     }
 
     @Test

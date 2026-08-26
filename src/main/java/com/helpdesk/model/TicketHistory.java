@@ -9,12 +9,13 @@ public class TicketHistory {
     private final TicketAction action;
     private final LocalDateTime timestamp;
     private final String description;
-
+    private final SupportAgent agent;
     // Constructor
-    public TicketHistory(TicketAction action, String description) {
+    public TicketHistory(TicketAction action, String description, SupportAgent agent) {
         this.action = action;
         this.timestamp = LocalDateTime.now();
         this.description = description;
+        this.agent  = agent;
     }
 
     // Getters
@@ -23,6 +24,9 @@ public class TicketHistory {
     }
     public LocalDateTime getTimestamp() {
         return timestamp;
+    }
+    public SupportAgent getAgent() {
+        return agent;
     }
 
     public String getDescription() {
@@ -36,9 +40,10 @@ public class TicketHistory {
     // Returns a string representation of the ticket history
     @Override
     public String toString() {
+        String agentData = this.agent != null ? "Agent name: " + this.agent.getName() + ", ID: " + this.agent.getId() : "No agent (system or customer action)";
         String formattedTimestamp = timestamp.format(FORMATTER);
         return "[" + formattedTimestamp + "] "
-                + action + " - " + description;
+                + action + " - " + description + " - " + agentData;
     }
 }
 

@@ -13,6 +13,10 @@ public abstract class User {
 
     // Constructor
     protected User(String name, String lastName, String email, String phoneNumber) {
+
+        if (name == null || lastName == null || email == null || phoneNumber == null) {
+            throw new IllegalArgumentException("Users's arguments cannot be null.");
+        }
         this.name = name;
         this.lastName = lastName;
         this.email = email;

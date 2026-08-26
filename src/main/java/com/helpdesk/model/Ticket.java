@@ -1,5 +1,6 @@
 package com.helpdesk.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +16,8 @@ public class Ticket {
     private static int counter;
     private final String ticketTitle;
     private final String ticketDescription;
-
+    private SupportAgent closedBy;
+    private LocalDateTime closedAt;
     private final List<TicketHistory> history;
 
 
@@ -33,8 +35,7 @@ public class Ticket {
         this.ticketDescription = ticketDescription;
         this.status = TicketStatus.OPEN;
         this.history = new ArrayList<>();
-        this.history.add(new TicketHistory(TicketAction.CREATED, "Ticket Created"));
-
+        this.history.add(new TicketHistory(TicketAction.CREATED, "Ticket Created", null));
 
     }
 
@@ -67,6 +68,13 @@ public class Ticket {
         return agent;
     }
 
+    public SupportAgent getClosedBy() {
+        return closedBy;
+    }
+    public LocalDateTime getClosedAt() {
+        return closedAt;
+    }
+
     public String getTicketTitle() {
         return ticketTitle;
     }
@@ -85,7 +93,7 @@ public class Ticket {
         if (agent != null && this.agent == null && this.status == TicketStatus.OPEN) {
             this.agent = agent;
             this.status = TicketStatus.ASSIGNED;
-            history.add(new TicketHistory(TicketAction.ASSIGNED, "Agent Assigned"));
+            history.add(new TicketHistory(TicketAction.ASSIGNED, "Agent Assigned", this.agent));
             return true;
         }
         return false;
@@ -95,7 +103,7 @@ public class Ticket {
     public boolean startProgress() {
         if (this.status == TicketStatus.ASSIGNED) {
             this.status = TicketStatus.IN_PROGRESS;
-            history.add(new TicketHistory(TicketAction.STARTED_PROGRESS, "Ticket Progress Started"));
+            history.add(new TicketHistory(TicketAction.STARTED_PROGRESS, "Ticket Progress Started", this.agent));
             return true;
         }
         return false;
@@ -105,8 +113,9 @@ public class Ticket {
     public boolean closeTicket() {
         if (isActive() && this.agent != null) {
             this.status = TicketStatus.CLOSED;
-            history.add(new TicketHistory(TicketAction.CLOSED, "Ticket Closed by agent " + this.agent.getName()));
-            this.agent = null;
+            this.closedBy = this.agent;
+            this.closedAt = LocalDateTime.now();
+            history.add(new TicketHistory(TicketAction.CLOSED, "Ticket Closed", this.agent));
             return true;
         }
         return false;
@@ -116,7 +125,10 @@ public class Ticket {
     public boolean reopenTicket() {
         if (this.status == TicketStatus.CLOSED) {
             this.status = TicketStatus.OPEN;
-            history.add(new TicketHistory(TicketAction.REOPENED, "Ticket Reopened"));
+            this.closedBy = null;
+            this.closedAt = null;
+            this.agent = null;
+            history.add(new TicketHistory(TicketAction.REOPENED, "Ticket Reopened", null));
             return true;
         }
         return false;
@@ -127,7 +139,7 @@ public class Ticket {
         if (this.agent != null && agent != null && this.isActive() && this.agent != agent) {
             this.agent = agent;
             this.status = TicketStatus.ASSIGNED;
-            history.add(new TicketHistory(TicketAction.REASSIGNED, "Agent Reassigned"));
+            history.add(new TicketHistory(TicketAction.REASSIGNED, "Agent Reassigned", this.agent));
             return true;
         }
         return false;
@@ -136,9 +148,9 @@ public class Ticket {
     // Unassigns an agent
     public boolean unassignAgent() {
         if (this.isActive() && this.agent != null) {
-            this.agent = null;
             this.status = TicketStatus.OPEN;
-            history.add(new TicketHistory(TicketAction.UNASSIGNED, "Agent Unassigned"));
+            history.add(new TicketHistory(TicketAction.UNASSIGNED, "Agent Unassigned", this.agent));
+            this.agent = null;
             return true;
         }
         return false;
@@ -148,7 +160,7 @@ public class Ticket {
     public boolean changePriority(Priority newPriority) {
         if (this.isActive() && newPriority != null && this.priority != newPriority) {
             this.priority = newPriority;
-            history.add(new TicketHistory(TicketAction.PRIORITY_CHANGED, "Priority Changed"));
+            history.add(new TicketHistory(TicketAction.PRIORITY_CHANGED, "Priority Changed", this.agent));
             return true;
         }
         return false;
@@ -168,10 +180,9 @@ public class Ticket {
     @Override
     public String toString() {
 
-        String agentName = this.agent != null ? this.agent.getName() : "Not assigned yet";
+        String agentName = this.agent != null ? this.agent.getName() + " " + this.agent.getId() : "Not assigned yet";
         String agentId = this.agent != null ? String.valueOf(this.agent.getId()) : "N/A";
-        String customerName = this.customer != null ? this.customer.getName() : "Unknown";
 
-        return "Ticket ID: " + this.id + ", Ticket Title: " + this.ticketTitle + ", Ticket Description: " + this.ticketDescription + ", Status: " + this.status + ", Priority: " + this.priority + ", Customer: " + customerName + ", Agent: " + agentName + ", Agent ID: " + agentId;
+        return "Ticket ID: " + this.id + ", Ticket Title: " + this.ticketTitle + ", Ticket Description: " + this.ticketDescription + ", Status: " + this.status + ", Priority: " + this.priority + ", Customer: " + this.customer.getName() + ", Agent: " + agentName + ", Agent ID: " + agentId;
     }
 }

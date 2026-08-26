@@ -102,4 +102,73 @@ public class TicketTest {
         assertEquals(TicketStatus.OPEN, ticket1.getStatus());
         assertEquals(1, ticket1.getHistory().size());
     }
+
+    @Test
+    void closeTicketShouldStoreClosingAgentAndTime() {
+
+        assertTrue(ticket1.assignAgent(agent1));
+
+        assertTrue(ticket1.closeTicket());
+
+        assertEquals(TicketStatus.CLOSED, ticket1.getStatus());
+        assertSame(agent1, ticket1.getClosedBy());
+        assertNotNull(ticket1.getClosedAt());
+    }
+
+    @Test
+    void closeTicketShouldAddClosingAgentToHistory() {
+
+        assertTrue(ticket1.assignAgent(agent1));
+        assertTrue(ticket1.closeTicket());
+
+        TicketHistory lastEvent =
+                ticket1.getHistory().getLast();
+
+        assertEquals(TicketAction.CLOSED, lastEvent.getAction());
+        assertSame(agent1, lastEvent.getAgent());
+    }
+
+    @Test
+    void reopenTicketShouldClearCurrentAgentAndClosingData() {
+
+        assertTrue(ticket1.assignAgent(agent1));
+        assertTrue(ticket1.closeTicket());
+
+        assertTrue(ticket1.reopenTicket());
+
+        assertEquals(TicketStatus.OPEN, ticket1.getStatus());
+        assertNull(ticket1.getAgent());
+        assertNull(ticket1.getClosedBy());
+        assertNull(ticket1.getClosedAt());
+    }
+
+    @Test
+    void reopenTicketShouldAddHistoryEventWithoutAgent() {
+
+        assertTrue(ticket1.assignAgent(agent1));
+        assertTrue(ticket1.closeTicket());
+        assertTrue(ticket1.reopenTicket());
+
+        TicketHistory lastEvent =
+                ticket1.getHistory().getLast();
+
+        assertEquals(TicketAction.REOPENED, lastEvent.getAction());
+        assertNull(lastEvent.getAgent());
+    }
+
+    @Test
+    void unassignAgentShouldKeepPreviousAgentInHistory() {
+
+        assertTrue(ticket1.assignAgent(agent1));
+        assertTrue(ticket1.unassignAgent());
+
+        assertNull(ticket1.getAgent());
+        assertEquals(TicketStatus.OPEN, ticket1.getStatus());
+
+        TicketHistory lastEvent =
+                ticket1.getHistory().getLast();
+
+        assertEquals(TicketAction.UNASSIGNED, lastEvent.getAction());
+        assertSame(agent1, lastEvent.getAgent());
+    }
 }
