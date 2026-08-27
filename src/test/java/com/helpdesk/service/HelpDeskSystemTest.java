@@ -383,7 +383,7 @@ public class HelpDeskSystemTest {
         assertTrue(system.closeTicket(ticket1.getId()));
 
         TicketHistory lastEvent =
-                ticket1.getHistory().get(ticket1.getHistory().size() - 1);
+                ticket1.getHistory().getLast();
 
         assertEquals(TicketAction.CLOSED, lastEvent.getAction());
         assertSame(agent1, lastEvent.getAgent());
