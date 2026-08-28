@@ -2,9 +2,9 @@
 
 A Java help desk ticketing system built as a portfolio project.
 
-I started the project to practise Java OOP and gradually expanded it with ticket workflow logic, agent assignment, ticket history and automated tests.
+I started the project to practise Java OOP and gradually expanded it with ticket workflow logic, agent assignment, ticket history, automated tests and a relational SQL Server database schema.
 
-The next stage is adding a relational SQL database and JDBC persistence.
+The project currently uses an in-memory Java implementation alongside a SQL Server database design. The next stage is connecting the application to the database using JDBC.
 
 ## Features
 
@@ -21,6 +21,9 @@ The next stage is adding a relational SQL database and JDBC persistence.
 - Agent workload calculation
 - Automatic assignment of open unassigned tickets
 - Protection against invalid ticket state transitions
+- Relational SQL Server database schema
+- SQL sample data
+- SQL reporting queries
 
 ## Ticket Workflow
 
@@ -45,8 +48,7 @@ CLOSED
   v
 OPEN
 ```
-A ticket can only be closed when an agent is assigned.
-When a ticket is closed, the current agent assignment is removed. Reopening the ticket returns it to OPEN, ready to be assigned again.
+A ticket can only be closed when an agent is assigned. When a ticket is closed, the closing agent and timestamp are recorded. Reopening the ticket returns it to OPEN and removes the current agent assignment so that it can be assigned again.
 
 ## Project Structure
 
@@ -76,12 +78,32 @@ src
             └── service
                 └── HelpDeskSystemTest.java
 
+database
+├── schema.sql
+├── sample_data.sql
+└── queries.sql
+
 ```
+
+## Database
+
+The SQL Server database models users, customers, support agents, tickets and ticket history using primary keys, foreign keys and constraints.
+The database directory contains:
+- `schema.sql` – creates the relational database structure
+- `sample_data.sql` – inserts sample users, agents, customers and tickets
+- `queries.sql` – contains reporting and support queries using joins, filtering, aggregation, grouping and sorting
+
+Example reports include:
+- Open tickets waiting for assignment
+- Tickets assigned to a specific agent
+- Ticket details with customer and agent information
+- Active ticket workload per agent
+- Ticket counts by status
+- Ticket counts by priority
 
 ## Testing
 
-The project uses JUnit 5 for automated testing.
-There are currently 39 passing tests covering:
+The project uses JUnit 5 for automated testing covering:
 - Customer and agent registration
 - Duplicate validation
 - Ticket creation
@@ -94,6 +116,7 @@ There are currently 39 passing tests covering:
 - Agent workload calculations
 - Automatic ticket assignment
 - Invalid operations
+
 Tests can be run with Maven:
 ```
 mvn test
@@ -101,6 +124,8 @@ mvn test
 ## Technologies
 
 - Java
+- Microsoft SQL Server
+- SQL
 - Maven
 - JUnit 5
 - Git
@@ -109,14 +134,12 @@ mvn test
 
 ## Current Design
 
-The project currently stores data in memory using Java collections.
-HelpDeskSystem handles system-level operations such as registering users, finding tickets, assigning agents and calculating workloads.
+The Java application currently stores runtime data in memory using Java collections. HelpDeskSystem handles system-level operations such as registering users, finding tickets, assigning agents and calculating workloads.
 The Ticket class is responsible for ticket state changes such as assignment, progress, priority changes, closing and reopening.
+A relational SQL Server schema has also been created to represent the application data persistently. Java and SQL are not yet connected.
 
 ## Next Steps
-- Design relational database schema
-- Add SQL sample data
-- Add SQL reporting and validation queries
-- Connect Java to the database using JDBC
-- Add repository layer
-- Move application data from in-memory collections to persistent storage
+- Connect Java to SQL Server using JDBC
+- Add a repository layer
+- Replace in-memory application storage with database persistence
+- Persist ticket history and workflow changes
